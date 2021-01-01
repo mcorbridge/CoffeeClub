@@ -41,7 +41,7 @@ class KotlinCallbacks {
             }
         }
 
-        serveCustomers()
+        serveCustomers() // start
 
     }
 }
