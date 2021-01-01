@@ -1,1 +1,2 @@
 # CoffeeClub
+This little test app is a simulation of a café where a limited number of baristas are serving a never ending queue of customers.  By adjusting the rate at which customers are added to the queue, the number of baristas, the time required to make the coffee (from simple drip, to complex caffé macchiato), the price of the coffee type, the efficacy of the individual barista, the hourly rate of the barista - optimization café operation can be determined.
