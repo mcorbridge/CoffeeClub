@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.*
 
@@ -20,54 +21,84 @@ import java.util.*
 class KotlinCallbacks {
     var customerQueue = CustomerQueue()
 
+    var ndx = 0
+
     init {
 
-        var activeBarista =  BaristasOnDuty.baristaList[0]
+        var jan = BaristasOnDuty.baristaList[0]
+        var wally = BaristasOnDuty.baristaList[1]
+        var mike = BaristasOnDuty.baristaList[2]
+        var richard = BaristasOnDuty.baristaList[3]
+        var kevin = BaristasOnDuty.baristaList[4]
 
-        fun serveCustomers(){
-            var currentCustomer = customerQueue.customers[0]
 
-            activeBarista.currentCustomer = currentCustomer
-            activeBarista.acceptOrder(AsyncCoffeeOrder.getCoffee())
+        fun serveCustomers(barista: Barista) {
 
-            when (activeBarista.status) {
-                Status.AVAILABLE.status -> activeBarista.doBrewCoffee {
-                    customerQueue.customers.remove(currentCustomer)
-                    println("ready for next customer")
-                    var customer = Customer()
-                    customerQueue.customers.add(10,customer)
-                    serveCustomers() // <- recursive
+            println(">>>>>>>>>>>>>>>> total customers served: ${ndx++}")
+
+            var currentCustomer = customerQueue.getAvailableCustomer()
+
+            if (currentCustomer != null) {
+                currentCustomer.isServed = true
+                barista.currentCustomer = currentCustomer
+            }else{
+                println("|--------------- There are no available customers!")
+            }
+
+            barista.doBrewCoffee { // lambda callback with time delay
+                if (currentCustomer != null) {
+                    customerQueue.removeCustomer(currentCustomer)
+                }
+
+                customerQueue.addSingleCustomer()
+                println("|---------------- ${barista.name} is ready for next customer")
+
+                var serveOffset = when(barista.name){
+                    "Jan" -> 1000L
+                    "Wally" -> 2000L
+                    "Mike" -> 3000L
+                    "Richard" -> 4000L
+                    "Kevin" -> 5000L
+                    else -> 500L
+                }
+
+                GlobalScope.launch {
+                    delay(serveOffset)
+                    serveCustomers(barista)// <- recursive
                 }
             }
         }
 
-        serveCustomers() // start
-
-    }
-}
-
-class CoffeeTypeQueue{
-    companion object{
-        var coffeeQueue: MutableList<CoffeeType> = mutableListOf(
-            CoffeeType.AMERICANO,
-            CoffeeType.LATTE,
-            CoffeeType.CAPPUCCINO,
-            CoffeeType.DRIP,
-            CoffeeType.ESPRESSO,
-        )
-    }
-}
-
-
-class AsyncCoffeeOrder{
-    companion object{
-        fun getCoffee():CoffeeType{
-            val rnd: Int = (0..4).random()
-            return CoffeeTypeQueue.coffeeQueue[rnd]
+        GlobalScope.launch {
+            delay(5000L)
+            serveCustomers(jan)
         }
+
+        GlobalScope.launch {
+            delay(5500L)
+            serveCustomers(wally)
+        }
+
+        GlobalScope.launch {
+            BaristaOffset.introduceDelay(6000L) {
+                serveCustomers(mike)
+            }
+        }
+
+        GlobalScope.launch {
+            BaristaOffset.introduceDelay(6500L) {
+                serveCustomers(richard)
+            }
+        }
+
+        GlobalScope.launch {
+            BaristaOffset.introduceDelay(7000L) {
+                serveCustomers(kevin)
+            }
+        }
+
     }
 }
-
 
 /**
  * BrewTimeSimulator
@@ -79,6 +110,16 @@ class BrewTimeSimulator() {
         delay(delay)
         callback()
     }
+}
+
+class BaristaOffset {
+    companion object {
+        suspend fun introduceDelay(delay: Long, callback: () -> Unit) {
+            delay(delay)
+            callback()
+        }
+    }
+
 }
 
 /**
@@ -94,11 +135,11 @@ class CoffeeNewMaker {
 /**
  * The baristas that are available to work at the café
  */
-class BaristasOnDuty{
+class BaristasOnDuty {
 
-    companion object{
+    companion object {
 
-        var baristaList:MutableList<Barista> = mutableListOf(
+        var baristaList: MutableList<Barista> = mutableListOf(
             Barista("Jan"),
             Barista("Wally"),
             Barista("Mike"),
@@ -115,19 +156,18 @@ class BaristasOnDuty{
 class Barista(val name: String, val hrlyRate: Double = 15.00) : OnCoffeeBrewedListener {
     var status: String = Status.AVAILABLE.status
     var coffeeType: CoffeeType? = null
-    lateinit var currentCustomer:Customer
-    private val coffeeMaker = CoffeeNewMaker()
-
-    fun acceptOrder(coffeeType: CoffeeType) {
-        this.coffeeType = coffeeType
-    }
+    lateinit var currentCustomer: Customer
+    private val coffeeMaker = CoffeeNewMaker() // TODO <- not sure what this is?
 
     fun doBrewCoffee(callback: () -> Unit) {
-        var brewTimeSimulator = BrewTimeSimulator()
+        val brewTimeSimulator = BrewTimeSimulator()
+        this.coffeeType = currentCustomer.coffeeType
 
         println("|-------- [barista] ${name} ------- has started brewing ${this.coffeeType?.name} for ${currentCustomer.name}")
+
         status = Status.BUSY.status
-        GlobalScope.async {
+
+        GlobalScope.launch {
             coffeeType?.let {
                 brewTimeSimulator.brewCoffee(it.brewTime) { // this is a lambda function
                     onCoffeeBrewed(coffeeType!!)
@@ -144,6 +184,50 @@ class Barista(val name: String, val hrlyRate: Double = 15.00) : OnCoffeeBrewedLi
     }
 } // end barista class
 
+/**
+ * Customer for Mike's Café
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+class Customer {
+    lateinit var name: String
+    lateinit var orderTime: LocalDate
+    lateinit var coffeeType: CoffeeType
+    lateinit var id: UUID
+    var isServed:Boolean = false
+
+    init {
+        setCustomerName()
+        setOrderTime()
+        setCoffeeType()
+        setUUID()
+    }
+
+    private fun setCustomerName() {
+        this.name = getRndCustomerName()
+    }
+
+    private fun setOrderTime() {
+        this.orderTime = LocalDate.now()
+    }
+
+    private fun setCoffeeType() {
+        val coffeeType: CoffeeType = CoffeeType.values()[(0..4).random()]
+        this.coffeeType = coffeeType
+    }
+
+    private fun setUUID() {
+        this.id = UUID.randomUUID()
+    }
+
+    private fun getRndCustomerName(): String {
+        return if ((0..9).random() > 4) {
+            RandomMaleNames.values()[(RandomMaleNames.values().indices).random()].name
+        } else {
+            RandomFemaleNames.values()[(RandomFemaleNames.values().indices).random()].name
+        }
+    }
+}
+
 /* ***************************************************************************************************
  *                                         utility classes
  * ***************************************************************************************************/
@@ -153,73 +237,55 @@ interface OnCoffeeBrewedListener {
 }
 
 /**
- * TODO maybe this should be a singleton?
+ * TODO maybe this should be a singleton? (or static - companion object - at least)
  */
 @RequiresApi(Build.VERSION_CODES.O)
-class CustomerQueue{
-    var customers:MutableList<Customer> = mutableListOf()
+class CustomerQueue {
+    var customers: MutableList<Customer> = mutableListOf()
 
-    init{
+    init {
         setCustomers()
     }
 
-    private fun setCustomers(){
-        for(n in 0..10){
+    private fun setCustomers() {
+        for (n in 0..10) {
             customers.add(Customer())
         }
     }
 
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-class Customer{
-    lateinit var name:String
-    lateinit var  orderTime:LocalDate
-    lateinit var coffeeType:CoffeeType
-    lateinit var id:UUID
-
-    init{
-        setCustomerName()
-        setOrderTime()
-        setCoffeeType()
-        setUUID()
+    fun addSingleCustomer(){
+        customers.add(10, Customer())
     }
 
-    private fun setCustomerName(){
-        this.name = getRndCustomerName()
+    fun removeCustomer(customer: Customer){
+        customers.remove(customer)
     }
 
-    private fun setOrderTime(){
-        this.orderTime = LocalDate.now()
-    }
-
-    private fun setCoffeeType(){
-        val coffeeType:CoffeeType = CoffeeType.values()[(0..4).random()]
-        this.coffeeType = coffeeType
-    }
-
-    private fun setUUID(){
-        this.id = UUID.randomUUID()
-    }
-
-    private fun getRndCustomerName():String{
-        return if((0..9).random() > 4){
-            RandomMaleNames.values()[(RandomMaleNames.values().indices).random()].name
-        }else{
-            RandomFemaleNames.values()[(RandomFemaleNames.values().indices).random()].name
+    fun getAvailableCustomer():Customer?{
+        var availableCustomer: Customer? = null
+        for(customer in customers){
+              if(!customer.isServed){
+                  availableCustomer = customer
+                  availableCustomer.isServed = true
+                  break
+            }
         }
+        if (availableCustomer != null) {
+            println("|--------availableCustomer.name--------- ${availableCustomer.name} [${customers.size}]")
+        }
+        return availableCustomer
     }
+
 }
 
 
-data class Coffee(val type: CoffeeType)
 
 enum class CoffeeType(val brewTime: Long, val coffeeName: String) {
-    AMERICANO(6750L, "Americano"),
-    CAPPUCCINO(9500L, "Cappuccino"),
-    DRIP(9000L, "Drip"),
-    ESPRESSO(8000L, "Espresso"),
-    LATTE(10000L, "Latte")
+    AMERICANO(10000L, "Americano"),
+    CAPPUCCINO(30000L, "Cappuccino"),
+    DRIP(5000L, "Drip"),
+    ESPRESSO(25000L, "Espresso"),
+    LATTE(40000L, "Latte")
 }
 
 enum class Status(val status: String) {
