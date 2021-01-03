@@ -7,8 +7,6 @@
 
 package com.mcorbridge.kotlinfirebase.callbacks
 
-import java.util.*
-
 enum class RandomMaleNames {
     James,
     John,
@@ -89,6 +87,7 @@ enum class RandomMaleNames {
     Joe,
     Bryan,
     Billy,
+    Robin,
     Jordan,
     Albert,
     Dylan,
@@ -108,6 +107,7 @@ enum class RandomMaleNames {
     Louis,
     Philip,
     Wally,
+    Malcolm,
 }
 
 enum class RandomFemaleNames {
@@ -144,6 +144,7 @@ enum class RandomFemaleNames {
     Kathleen,
     Amy,
     Shirley,
+    Robin,
     Angela,
     Helen,
     Anna,
@@ -208,4 +209,5 @@ enum class RandomFemaleNames {
     Sophia,
     Rose,
     Isabella,
+    Myrtle,
 }
