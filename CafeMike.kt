@@ -14,10 +14,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.timerTask
 import kotlin.properties.Delegates
 
-// TODO Clean up this mess
+/**
+ * 54,000,000 msec per 15 hr shift (15 hr x 60 min x 60 sec x 1000 msec)
+ * 3,600,000 msec per hr
+ * --------------------------------
+ * 3,600 msec = 1 min
+ * 216,000 msec = 1 hr
+ * 3,240,000 msec = 15hr
+ *
+ * Starbucks they are bringing a daily average of around 476 customers per store which leads to over 600+ cups of coffee per day.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 class CafeMike {
 
@@ -25,7 +35,7 @@ class CafeMike {
     var cafeReceipts: Double = 0.0
     private var ndx = 0
     val dec = DecimalFormat("$#,###.00")
-    private var startTime: Long = 0
+    private var startTime: Long = 0L
 
     init {
 
@@ -35,8 +45,6 @@ class CafeMike {
         var richard = BaristasOnDuty.baristaList[3]
         var kevin = BaristasOnDuty.baristaList[4]
 
-
-
         fun getStartTime() {
             startTime = System.currentTimeMillis()
         }
@@ -45,6 +53,10 @@ class CafeMike {
 
             var currentCustomer = CustomerQueue.getAvailableCustomer()
 
+            // might not need this, but this is the set of baristas currently 'working' out of the available 'pool'
+            BaristaStatus.addBaristaOnDuty(barista)
+
+            // prevent all available baristas rushing to get the next available customer which would cause 'collisions'
             val serveOffset = when (barista.name) {
                 "Jan" -> 1000L
                 "Wally" -> 2000L
@@ -54,6 +66,7 @@ class CafeMike {
                 else -> 500L
             }
 
+            // offset baristas being added to the IDLE loop so they are not activated at the same time when a customer is added
             val loopOffset = when (barista.name) {
                 "Jan" -> 1000L
                 "Wally" -> 5000L
@@ -67,6 +80,7 @@ class CafeMike {
                 println("|-----------serveCustomers-----------------> ${barista.name} -> ${currentCustomer.name} [${CustomerQueue.customers.size}] ")
             }
 
+            // send the barista into an IDLE loop, waiting for customer to be added to queue
             if(CustomerQueue.customers.size == 0){
                 println("---------------- send ${barista.name} back into Idle Loop")
                 barista.doIdleLoop(loopOffset) {
@@ -77,10 +91,6 @@ class CafeMike {
                 }
             }
 
-            BaristaStatus.addBaristaOnDuty(barista)
-
-            //println(">>>>>>>>>>>>>>>> TOTAL customers served: ${ndx++}")
-
             if (currentCustomer != null) {
                 currentCustomer.isServed = true
                 barista.currentCustomer = currentCustomer
@@ -89,13 +99,15 @@ class CafeMike {
 
             barista.doBrewCoffee { // lambda callback with time delay
 
-                if (currentCustomer != null) {
-                    cafeReceipts += currentCustomer!!.coffeeOrder.price
-                    currentCustomer = null
-                }
-
                 val interimTime = System.currentTimeMillis()
                 val elapsedTime = (interimTime - startTime)
+
+                if (currentCustomer != null) {
+                    cafeReceipts += currentCustomer!!.coffeeOrder.price
+                    println("${ndx++} customers served: ${getAcceleratedTime(elapsedTime)}")
+                    currentCustomer!!.orderTime = elapsedTime
+                    currentCustomer = null
+                }
 
                 if (CustomerQueue.customers.size == 0) {
                     barista.doIdleLoop(loopOffset) {
@@ -104,7 +116,6 @@ class CafeMike {
                             serveCustomers(barista)// <- recursive
                         }
                     }
-
                 } else {
                     GlobalScope.launch {
                         delay(serveOffset)
@@ -114,9 +125,9 @@ class CafeMike {
 
             }
 
-        } //
+        } // end serveCustomers
 
-        getStartTime()
+        // baristas are activated/deactivated by uncommenting/commenting their thread
 
         GlobalScope.launch {
             BaristaOffset.introduceDelay(5000L) {
@@ -148,11 +159,12 @@ class CafeMike {
             }
         }*/
 
+        // TODO maybe move this out into it's own class?
         fun startCustomersWalkingInTheDoor() {
             val kotlinTimer = Timer()
             kotlinTimer.scheduleAtFixedRate(timerTask {
                 val rnd = (0..9).random()
-                if(rnd == 8){
+                if(rnd == 8){ // a random 'blast' of customers
                     CustomerQueue.addSingleCustomer()
                     CustomerQueue.addSingleCustomer()
                     CustomerQueue.addSingleCustomer()
@@ -168,22 +180,21 @@ class CafeMike {
 
         }
 
+        getStartTime()
         startCustomersWalkingInTheDoor()
 
-    }
+    } // end init
 
-    private fun getElapsedTime(millisec: Long): String {
-        val sec: Long = millisec / 1000
-        val min: Long = (millisec / 1000) / 60
-        val hour: Long = ((millisec / 1000) / 60) / 60
-        // println("sec: $sec min:$min hour:$hour")
-        return if (hour >= 1) {
-            "$hour hrs"
-        } else if (min >= 1) {
-            "$min mins"
-        } else {
-            "$sec secs"
-        }
+    private fun getAcceleratedTime(elapsedTimeMSEC: Long): String {
+
+        var accelTime: Long = elapsedTimeMSEC * 36L
+
+        var strElapsedTime = String.format("%02d:%02d:%02d",
+            TimeUnit.MILLISECONDS.toHours(accelTime),
+            TimeUnit.MILLISECONDS.toMinutes(accelTime) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(accelTime)), // The change is in this line
+            TimeUnit.MILLISECONDS.toSeconds(accelTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(accelTime)));
+
+        return strElapsedTime
     }
 }
 
@@ -198,6 +209,9 @@ class BrewTimeSimulator() {
     }
 }
 
+/**
+ *
+ */
 class BaristaOffset {
     companion object {
         suspend fun introduceDelay(delay: Long, callback: () -> Unit) {
@@ -235,7 +249,9 @@ class Barista(val name: String, val hrlyRate: Double = 15.00) : OnCoffeeBrewedLi
     var currentlyOnDuty:Boolean = false
     var isIdle:Boolean = false
 
-
+    /**
+     *
+     */
     fun doBrewCoffee(callback: () -> Unit) {
 
         val brewTimeSimulator = BrewTimeSimulator()
@@ -253,6 +269,9 @@ class Barista(val name: String, val hrlyRate: Double = 15.00) : OnCoffeeBrewedLi
         }
     }
 
+    /**
+     *
+     */
     fun doIdleLoop(offset:Long, callback: () -> Unit) {
         isIdle = true
         var barista = this
