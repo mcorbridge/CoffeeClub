@@ -9,6 +9,8 @@ package com.mcorbridge.kotlinfirebase.callbacks
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.util.*
+import kotlin.concurrent.timerTask
 
 @RequiresApi(Build.VERSION_CODES.O)
 object CustomerQueue {
@@ -45,6 +47,26 @@ object CustomerQueue {
             }
         }
         return availableCustomer
+    }
+
+    fun checkCurrentQueue() {
+        val kotlinTimer = Timer()
+        kotlinTimer.scheduleAtFixedRate(timerTask {
+            if (customers.size == 0) {
+                BaristaStatus.listBaristasIdle.forEach {
+                    print(" ${it.name} | ")
+                }
+            } else if ((customers.size != 0) && (BaristaStatus.listBaristasIdle.size != 0)) {
+                var barista = BaristaStatus.listBaristasIdle[0]
+                println("send ${ barista.name } back to work!")
+                barista.setBaristaActive()
+            }
+            println(" customers [${customers.size}]")
+        }, 10, 2000)
+    }
+
+    fun baristaIdle(barista:Barista, callback:() -> Unit){
+        callback()
     }
 
 }

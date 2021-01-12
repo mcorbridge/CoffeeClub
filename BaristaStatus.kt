@@ -9,6 +9,9 @@ package com.mcorbridge.kotlinfirebase.callbacks
 
 object BaristaStatus {
 
+    val AVAILABLE:String = "AVAILABLE"
+    val BUSY:String = "BUSY"
+
 
     var listBaristasOnDuty:MutableList<Barista> = mutableListOf()
     var listBaristasIdle:MutableList<Barista> = mutableListOf()
