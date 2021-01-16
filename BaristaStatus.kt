@@ -9,28 +9,67 @@ package com.mcorbridge.kotlinfirebase.callbacks
 
 object BaristaStatus {
 
-    val AVAILABLE:String = "AVAILABLE"
-    val BUSY:String = "BUSY"
+    var baristasOnDuty:MutableList<Barista> = mutableListOf()
+    var baristasIdle:MutableList<Barista> = mutableListOf()
 
+    fun addBaristasOnDuty(){
+        baristasOnDuty.add(Barista("Jan"))
+        baristasOnDuty.add(Barista("Wally"))
+        baristasOnDuty.add(Barista("Mike"))
+        baristasOnDuty.add(Barista("Richard"))
+        baristasOnDuty.add(Barista("Kevin"))
+    }
 
-    var listBaristasOnDuty:MutableList<Barista> = mutableListOf()
-    var listBaristasIdle:MutableList<Barista> = mutableListOf()
-
-    fun addBaristaOnDuty(barista: Barista){
-        if(!listBaristasOnDuty.contains(barista)){
-            barista.currentlyOnDuty = true
-            listBaristasOnDuty.add(barista)
+    fun addBaristasIdle(){
+        baristasIdle.add(Barista("Jan"))
+        baristasIdle.add(Barista("Wally"))
+        baristasIdle.add(Barista("Mike"))
+        baristasIdle.add(Barista("Richard"))
+        baristasIdle.add(Barista("Kevin"))
+    }
+    
+    fun setBaristaStatus(barista: Barista, action:BaristaConstants){
+        if(action == BaristaConstants.IDLE){
+            println("${barista.name} IS NOW ${BaristaConstants.IDLE}")
+            if(!baristasIdle.contains(barista)){
+                baristasIdle.add(barista)
+                showIdleBaristas()
+            }
+        }else if(action == BaristaConstants.ACTIVE){
+            println("${barista.name} IS NOW ${BaristaConstants.ACTIVE}")
+            baristasIdle.remove(barista)
+            showIdleBaristas()
         }
     }
 
-    fun baristaIdle(barista: Barista, action:String){
-        if(action == "ADD"){
-            println("ADD ${barista.name} AS IDLE")
-            listBaristasIdle.add(barista)
-        }else if(action == "REMOVE"){
-            println("REMOVE ${barista.name} AS IDLE")
-            listBaristasIdle.remove(barista)
+    fun showIdleBaristas(){
+        print("\n:: ")
+        baristasIdle.forEach {
+            print(" ${it.name} | ")
         }
+        println("")
     }
 
+}
+
+/**
+ * The baristas that are available to work at the café
+ */
+class BaristasOnDuty {
+
+    companion object {
+
+        var baristaList: MutableList<Barista> = mutableListOf(
+            Barista("Jan"),
+            Barista("Wally"),
+            Barista("Mike"),
+            Barista("Richard"),
+            Barista("Kevin")
+        )
+    }
+}//
+
+enum class BaristaConstants{
+    IDLE,
+    ACTIVE,
 }

@@ -8,7 +8,10 @@
 package com.mcorbridge.kotlinfirebase.callbacks
 
 object CafeStatus {
-    var currentCafeStatus:String = ""
-    var OPEN:String = "OPEN"
-    var CLOSED:String = "CLOSED"
+    lateinit var currentCafeStatus:CafeStatusConstants
+}
+
+enum class CafeStatusConstants{
+    OPEN,
+    CLOSED
 }

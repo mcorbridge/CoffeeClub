@@ -33,40 +33,53 @@ object CustomerQueue {
         customers.add(customers.size, customer)
     }
 
-    fun removeCustomer(customer: Customer) {
-        customers.remove(customer)
-    }
-
-    fun getAvailableCustomer(): Customer? {
+    private fun getAvailableCustomer(): Customer? {
         var availableCustomer: Customer? = null
         for (customer in customers) {
             if (!customer.isServed) {
                 availableCustomer = customer
                 availableCustomer.isServed = true
+                customers.remove(availableCustomer)
                 break
             }
         }
         return availableCustomer
     }
 
-    fun checkCurrentQueue() {
-        val kotlinTimer = Timer()
-        kotlinTimer.scheduleAtFixedRate(timerTask {
-            if (customers.size == 0) {
-                BaristaStatus.listBaristasIdle.forEach {
-                    print(" ${it.name} | ")
-                }
-            } else if ((customers.size != 0) && (BaristaStatus.listBaristasIdle.size != 0)) {
-                var barista = BaristaStatus.listBaristasIdle[0]
-                println("send ${ barista.name } back to work!")
-                barista.setBaristaActive()
-            }
-            println(" customers [${customers.size}]")
-        }, 10, 2000)
+    fun inspectCustomer(customer: Customer){
+        println("Customer:")
+        println("name: ${customer.name}")
+        println("isServed: ${customer.isServed}")
+        println("orderTime(ms): ${customer.orderTime}")
+        println("id: ${customer.id}")
+        println("Coffee Order:")
+        println("name: ${customer.coffeeOrder.name} " +
+                "size: ${customer.coffeeOrder.size} " +
+                "type: ${customer.coffeeOrder.type} " +
+                "price: ${customer.coffeeOrder.price} " +
+                "brewTime: ${customer.coffeeOrder.brewTime}")
+
     }
 
-    fun baristaIdle(barista:Barista, callback:() -> Unit){
-        callback()
+    fun checkCurrentQueue() {
+
+        val kotlinTimer = Timer()
+        kotlinTimer.scheduleAtFixedRate(timerTask {
+            if (customers.size > 0) {
+                if(BaristaStatus.baristasIdle.size != 0){
+                    var barista = BaristaStatus.baristasIdle[0]
+                    BaristaStatus.setBaristaStatus(barista, BaristaConstants.ACTIVE)
+                    barista.currentCustomer = getAvailableCustomer()
+                    println("${barista.name} is serving ${barista.currentCustomer?.name}")
+                    barista.doBrewCoffee()
+                    BaristaStatus.showIdleBaristas()
+                }else{
+                    println("...There currently are no baristas available")
+                }
+            } else {
+                println("...There currently are no customers")
+            }
+        }, 10, 2000)
     }
 
 }

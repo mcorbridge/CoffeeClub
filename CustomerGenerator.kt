@@ -19,7 +19,7 @@ class CustomerGenerator {
         fun startCustomersWalkingInTheDoor() {
             val kotlinTimer = Timer()
             kotlinTimer.scheduleAtFixedRate(timerTask {
-                if(CafeStatus.currentCafeStatus == CafeStatus.CLOSED){
+                if(CafeStatus.currentCafeStatus == CafeStatusConstants.CLOSED){
                     kotlinTimer.cancel()
                 }
                 val rnd = (0..9).random()
@@ -33,7 +33,6 @@ class CustomerGenerator {
                     CustomerQueue.addSingleCustomer()
                     println("+")
                 }
-
             }, 5000, 5000)
         }
     }
