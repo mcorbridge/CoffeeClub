@@ -20,7 +20,6 @@ class CustomerGenerator {
         fun mediumCustomerDay() {
             val kotlinTimer = Timer()
             kotlinTimer.scheduleAtFixedRate(timerTask {
-                println("CafeStatus.currentCafeStatus: ${ CafeStatus.currentCafeStatus }")
                 if (CafeStatus.currentCafeStatus == CafeStatusConstants.CLOSED) {
                     println("------------ no more customers permitted -----------")
                     kotlinTimer.cancel()
@@ -42,7 +41,6 @@ class CustomerGenerator {
         fun busyCustomerDay() {
             val kotlinTimer = Timer()
             kotlinTimer.scheduleAtFixedRate(timerTask {
-                println("CafeStatus.currentCafeStatus: ${ CafeStatus.currentCafeStatus }")
                 if(CafeStatus.currentCafeStatus == CafeStatusConstants.CLOSED){
                     println("------------ no more customers permitted -----------")
                     kotlinTimer.cancel()
@@ -56,7 +54,8 @@ class CustomerGenerator {
                 }
                 else if (rnd >= 7) {
                     CustomerQueue.addSingleCustomer()
-                    println("+")
+                    CustomerQueue.addSingleCustomer()
+                    println("++")
                 }
             }, 10, 2500)
         }

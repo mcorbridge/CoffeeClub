@@ -18,13 +18,13 @@ class CafeSummary {
         val dec = DecimalFormat("$#,###.00")
         var numCustomers:Int = 0
 
-        fun getShiftGross():String{
+        private fun getShiftGross():String{
             return dec.format(shiftGross)
         }
 
         fun doSummary(){
             println("--------------------------------- SUMMARY ---------------------------")
-            println("TOTAL Customers: ${numCustomers}")
+            println("TOTAL Customers: $numCustomers")
             println("Shift Receipts: ${getShiftGross()}")
         }
     }

@@ -33,16 +33,14 @@ class CafeMike {
     var customers = CustomerQueue.customers
     val dec = DecimalFormat("$#,###.00")
 
-
-
     init {
         CafeStatus.currentCafeStatus = CafeStatusConstants.OPEN
-        CafeStatus.numBaristasOnDuty = 1
+        CafeStatus.numBaristasOnDuty = 3
         getStartTime()
         BaristaStatus.addBaristasIdle()
         BaristaStatus.addBaristasOnDuty()
         CustomerGenerator.busyCustomerDay()
-        CustomerQueue.checkCurrentQueue()
+        CustomerQueue.startServingCustomers()
 
     } // end init
 
@@ -63,53 +61,6 @@ class BrewTimeSimulator() {
 }
 
 
-/**
- * Customer for Mike's Café
- */
-@RequiresApi(Build.VERSION_CODES.O)
-class Customer {
-    lateinit var name: String
-    var orderTime by Delegates.notNull<Long>()
-    lateinit var coffeeOrder: CoffeeOrder
-    lateinit var id: UUID
-    var isServed: Boolean = false
-
-    init {
-        setCustomerName()
-        setOrderTime()
-        setCoffeeOrder()
-        setUUID()
-    }
-
-    private fun setCustomerName() {
-        this.name = getRndCustomerName()
-    }
-
-    private fun setOrderTime() {
-        this.orderTime = System.currentTimeMillis()
-    }
-
-    private fun setUUID() {
-        this.id = UUID.randomUUID()
-    }
-
-    private fun setCoffeeOrder() {
-        val menuItem: Menu = Menu.values()[(Menu.values().indices).random()]
-        val coffeeItem: CoffeeItem = menuItem.item
-        val rndSize = coffeeItem.price.keys.toList()[(coffeeItem.price.keys.toList().indices).random()]
-        val rndPrice: Double = coffeeItem.price[rndSize] ?: error("Double was not found")
-        val coffeeType: String = coffeeItem::class.simpleName.toString()
-        this.coffeeOrder = CoffeeOrder(coffeeType, coffeeItem.name, rndSize, rndPrice, coffeeItem.brewTime)
-    }
-
-    private fun getRndCustomerName(): String {
-        return if ((0..9).random() > 4) {
-            RandomMaleNames.values()[(RandomMaleNames.values().indices).random()].name
-        } else {
-            RandomFemaleNames.values()[(RandomFemaleNames.values().indices).random()].name
-        }
-    }
-}
 
 class CoffeeOrder(val name: String, val type: String, val size: String, val price: Double, val brewTime: Long) {
 

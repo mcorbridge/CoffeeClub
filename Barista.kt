@@ -13,9 +13,8 @@ import kotlinx.coroutines.launch
 
 class Barista(val name: String, val hrlyRate: Double = 15.00)  {
 
-    //var status = BaristaConstants.AVAILABLE
     var currentCustomer: Customer? = null
-    var serverCallback: () -> Unit = {}
+    var serverCallback: () -> Unit = {} // keeping this as example of storing function as variable
 
     fun doBrewCoffee() {
 
@@ -25,21 +24,22 @@ class Barista(val name: String, val hrlyRate: Double = 15.00)  {
         GlobalScope.launch {
             if (currentCustomer != null) {
                 brewTimeSimulator.brewCoffee(currentCustomer.coffeeOrder.brewTime) {
-                    println("     [ORDER COMPLETE] $name <- ${currentCustomer.name}")
-                    println("customers in queue: [${CustomerQueue.customers.size}]")
+                    currentCustomer.setOrderTimes(CustomerConstants.END)
+                    println("     [ORDER COMPLETE] $name <- ${currentCustomer.name} (${currentCustomer.customerNum}) ${getProcessTime(currentCustomer)}")
                     setBaristaIdle() // scope issues, so call outside function (?? <- works)
+                    println("customers in queue: [${CustomerQueue.customers.size}]")
                 }
             }
         }
     }
 
-    fun setBaristaIdle() {
+    private fun setBaristaIdle() {
         BaristaStatus.setBaristaStatus(this, BaristaConstants.IDLE)
         currentCustomer = null
     }
 
-    fun getProcessTime():String{
-        return CafeTimer.getAcceleratedTime(System.currentTimeMillis() - CafeTimer.startTime)
+    private fun getProcessTime(customer: Customer):String{
+        return CafeTimer.getAcceleratedTime(customer.orderTimeEnd - customer.orderTimeInit)
     }
 
 } // end barista class

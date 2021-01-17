@@ -10,6 +10,7 @@ package com.mcorbridge.kotlinfirebase.callbacks
 object CafeStatus {
     lateinit var currentCafeStatus:CafeStatusConstants
     var numBaristasOnDuty:Int = 0
+    var customerNum:Int = 1
 }
 
 enum class CafeStatusConstants{

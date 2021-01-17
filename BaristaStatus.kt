@@ -53,23 +53,6 @@ object BaristaStatus {
 
 }
 
-/**
- * The baristas that are available to work at the café
- */
-class BaristasOnDuty {
-
-    companion object {
-
-        var baristaList: MutableList<Barista> = mutableListOf(
-            Barista("Jan"),
-            Barista("Wally"),
-            Barista("Mike"),
-            Barista("Richard"),
-            Barista("Kevin")
-        )
-    }
-}//
-
 enum class BaristaConstants{
     IDLE,
     ACTIVE,

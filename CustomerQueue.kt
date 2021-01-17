@@ -23,14 +23,16 @@ object CustomerQueue {
         setInitialCustomers()
     }
 
+    // seed the queue with a couple of customers - open for adjustment
     private fun setInitialCustomers() {
-        for (n in 0..9) {
+        for (n in 0..2) {
             customers.add(Customer())
         }
     }
 
     fun addSingleCustomer() {
         val customer = Customer()
+        //customer.orderTimeInit = System.currentTimeMillis()
         customers.add(customers.size, customer)
     }
 
@@ -51,7 +53,6 @@ object CustomerQueue {
         println("Customer:")
         println("name: ${customer.name}")
         println("isServed: ${customer.isServed}")
-        println("orderTime(ms): ${customer.orderTime}")
         println("id: ${customer.id}")
         println("Coffee Order:")
         println(
@@ -64,8 +65,8 @@ object CustomerQueue {
 
     }
 
-    fun checkCurrentQueue() {
-
+    fun startServingCustomers() {
+        println("************************************ MIKE'S CAFÉ IS NOW ${CafeStatus.currentCafeStatus} ************************************")
         val kotlinTimer = Timer()
         kotlinTimer.scheduleAtFixedRate(timerTask {
             println("[${CafeTimer.getAcceleratedTime(System.currentTimeMillis() - CafeTimer.startTime)}]")
@@ -73,7 +74,7 @@ object CustomerQueue {
                 CafeStatus.currentCafeStatus = CafeStatusConstants.CLOSED
             }
             if (isClosingConditions()) {
-                println("************************************ STORE IS NOW ${CafeStatusConstants.CLOSED} ************************************")
+                println("************************************ MIKE'S CAFÉ IS NOW ${CafeStatus.currentCafeStatus} ************************************")
                 CafeSummary.doSummary()
                 exitProcess(-1)
             } else {
@@ -82,7 +83,7 @@ object CustomerQueue {
                         var barista = BaristaStatus.baristasIdle[0]
                         BaristaStatus.setBaristaStatus(barista, BaristaConstants.ACTIVE)
                         barista.currentCustomer = getAvailableCustomer()
-                        println("${barista.name} is serving ${barista.currentCustomer?.name}")
+                        println("     [ORDER STARTED] ${barista.name} -> ${barista.currentCustomer?.name} (${barista.currentCustomer?.customerNum})")
                         CafeSummary.shiftGross += barista.currentCustomer?.coffeeOrder?.price!!
                         CafeSummary.numCustomers++
                         barista.doBrewCoffee()
