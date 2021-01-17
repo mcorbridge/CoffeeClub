@@ -38,5 +38,9 @@ class Barista(val name: String, val hrlyRate: Double = 15.00)  {
         currentCustomer = null
     }
 
+    fun getProcessTime():String{
+        return CafeTimer.getAcceleratedTime(System.currentTimeMillis() - CafeTimer.startTime)
+    }
+
 } // end barista class
 

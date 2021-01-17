@@ -11,21 +11,18 @@ object BaristaStatus {
 
     var baristasOnDuty:MutableList<Barista> = mutableListOf()
     var baristasIdle:MutableList<Barista> = mutableListOf()
+    var baristaList:List<String> = listOf("Jan","Wally","Mike","Richard","Kevin")
 
     fun addBaristasOnDuty(){
-        baristasOnDuty.add(Barista("Jan"))
-        baristasOnDuty.add(Barista("Wally"))
-        baristasOnDuty.add(Barista("Mike"))
-        baristasOnDuty.add(Barista("Richard"))
-        baristasOnDuty.add(Barista("Kevin"))
+        for(name in 0 until CafeStatus.numBaristasOnDuty){
+            baristasOnDuty.add(Barista(baristaList[name]))
+        }
     }
 
     fun addBaristasIdle(){
-        baristasIdle.add(Barista("Jan"))
-        baristasIdle.add(Barista("Wally"))
-        baristasIdle.add(Barista("Mike"))
-        baristasIdle.add(Barista("Richard"))
-        baristasIdle.add(Barista("Kevin"))
+        for(name in 0 until CafeStatus.numBaristasOnDuty){
+            baristasIdle.add(Barista(baristaList[name]))
+        }
     }
     
     fun setBaristaStatus(barista: Barista, action:BaristaConstants){
@@ -42,10 +39,14 @@ object BaristaStatus {
         }
     }
 
-    fun showIdleBaristas(){
+    fun showIdleBaristas() {
         print("\n:: ")
-        baristasIdle.forEach {
-            print(" ${it.name} | ")
+        try{
+            baristasIdle.forEach {
+                print(" ${it.name} | ")
+            }
+        } catch (e: ConcurrentModificationException){
+            println("\nI'm gonna ignore this ... for now")
         }
         println("")
     }

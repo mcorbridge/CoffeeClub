@@ -15,11 +15,36 @@ import kotlin.concurrent.timerTask
 class CustomerGenerator {
 
     companion object{
+
         @RequiresApi(Build.VERSION_CODES.O)
-        fun startCustomersWalkingInTheDoor() {
+        fun mediumCustomerDay() {
             val kotlinTimer = Timer()
             kotlinTimer.scheduleAtFixedRate(timerTask {
+                println("CafeStatus.currentCafeStatus: ${ CafeStatus.currentCafeStatus }")
+                if (CafeStatus.currentCafeStatus == CafeStatusConstants.CLOSED) {
+                    println("------------ no more customers permitted -----------")
+                    kotlinTimer.cancel()
+                }
+                val rnd = (0..9).random()
+                if (rnd == 8) { // a random 'blast' of customers
+                    CustomerQueue.addSingleCustomer()
+                    CustomerQueue.addSingleCustomer()
+                    CustomerQueue.addSingleCustomer()
+                    println("+++")
+                } else if (rnd >= 7) {
+                    CustomerQueue.addSingleCustomer()
+                    println("+")
+                }
+            }, 5000, 5000)
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun busyCustomerDay() {
+            val kotlinTimer = Timer()
+            kotlinTimer.scheduleAtFixedRate(timerTask {
+                println("CafeStatus.currentCafeStatus: ${ CafeStatus.currentCafeStatus }")
                 if(CafeStatus.currentCafeStatus == CafeStatusConstants.CLOSED){
+                    println("------------ no more customers permitted -----------")
                     kotlinTimer.cancel()
                 }
                 val rnd = (0..9).random()
@@ -33,7 +58,7 @@ class CustomerGenerator {
                     CustomerQueue.addSingleCustomer()
                     println("+")
                 }
-            }, 5000, 5000)
+            }, 10, 2500)
         }
     }
 }

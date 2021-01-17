@@ -7,12 +7,25 @@
 
 package com.mcorbridge.kotlinfirebase.callbacks
 
-object CafeStatus {
-    lateinit var currentCafeStatus:CafeStatusConstants
-    var numBaristasOnDuty:Int = 0
-}
+import java.text.DecimalFormat
 
-enum class CafeStatusConstants{
-    OPEN,
-    CLOSED
+class CafeSummary {
+
+
+
+    companion object{
+        var shiftGross:Double = 0.0
+        val dec = DecimalFormat("$#,###.00")
+        var numCustomers:Int = 0
+
+        fun getShiftGross():String{
+            return dec.format(shiftGross)
+        }
+
+        fun doSummary(){
+            println("--------------------------------- SUMMARY ---------------------------")
+            println("TOTAL Customers: ${numCustomers}")
+            println("Shift Receipts: ${getShiftGross()}")
+        }
+    }
 }

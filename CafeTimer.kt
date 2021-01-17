@@ -14,24 +14,25 @@ class CafeTimer {
     companion object{
 
         var startTime:Long = 0L
+        var durationOpen:Long = 1L * 60L * 60L * 1000L // currently set to virtual 1 (ONE) hour - 1L
 
         // TODO investigate further increasing the time acceleration
         fun getAcceleratedTime(elapsedTimeMSEC: Long): String {
-
-            var durationOpen:Long = 1L * 60L * 60L * 1000L // currently set to virtual 1 (ONE) hour - 1L
-            var accelTime: Long = elapsedTimeMSEC * 10L // <- the process is sped up factor of 10
-
-            if(accelTime >= durationOpen){
-                CafeStatus.currentCafeStatus = CafeStatusConstants.CLOSED
-                println("STORE IS NOW ${CafeStatusConstants.CLOSED}")
-            }
-
-            var strElapsedTime = String.format("%02d:%02d:%02d",
+            val accelTime: Long = elapsedTimeMSEC * 10L // <- the process is sped up factor of 10
+            val strElapsedTime = String.format("%02d:%02d:%02d",
                 TimeUnit.MILLISECONDS.toHours(accelTime),
                 TimeUnit.MILLISECONDS.toMinutes(accelTime) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(accelTime)),
                 TimeUnit.MILLISECONDS.toSeconds(accelTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(accelTime)));
-
             return "$strElapsedTime (HH:mm:ss)"
+        }
+
+        fun isClosingTime(elapsedTimeMSEC: Long):Boolean{
+            val accelTime: Long = elapsedTimeMSEC * 10L // <- the process is sped up factor of 10
+            /*if(accelTime >= durationOpen){
+                CafeStatus.currentCafeStatus = CafeStatusConstants.CLOSED
+                println("STORE IS NOW ${CafeStatusConstants.CLOSED}")
+            }*/
+            return (accelTime >= durationOpen)
         }
 
     }

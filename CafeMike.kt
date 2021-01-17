@@ -31,23 +31,17 @@ import kotlin.system.exitProcess
 class CafeMike {
 
     var customers = CustomerQueue.customers
-    var cafeReceipts: Double = 0.0
-    private var ndx = 0
     val dec = DecimalFormat("$#,###.00")
+
 
 
     init {
         CafeStatus.currentCafeStatus = CafeStatusConstants.OPEN
-        BaristasOnDuty.baristaList[0]
-        BaristasOnDuty.baristaList[1]
-        BaristasOnDuty.baristaList[2]
-        BaristasOnDuty.baristaList[3]
-        BaristasOnDuty.baristaList[4]
-
+        CafeStatus.numBaristasOnDuty = 1
         getStartTime()
         BaristaStatus.addBaristasIdle()
         BaristaStatus.addBaristasOnDuty()
-        CustomerGenerator.startCustomersWalkingInTheDoor()
+        CustomerGenerator.busyCustomerDay()
         CustomerQueue.checkCurrentQueue()
 
     } // end init
