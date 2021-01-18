@@ -15,6 +15,9 @@ class Barista(val name: String, val hrlyRate: Double = 15.00)  {
 
     var currentCustomer: Customer? = null
     var serverCallback: () -> Unit = {} // keeping this as example of storing function as variable
+    var idleTimeStart:Long = 0
+    var idleTimeEnd:Long = 0
+    var totalIdleTime:Long = 0
 
     fun doBrewCoffee() {
 
@@ -25,9 +28,11 @@ class Barista(val name: String, val hrlyRate: Double = 15.00)  {
             if (currentCustomer != null) {
                 brewTimeSimulator.brewCoffee(currentCustomer.coffeeOrder.brewTime) {
                     currentCustomer.setOrderTimes(CustomerConstants.END)
-                    println("     [ORDER COMPLETE] $name <- ${currentCustomer.name} (${currentCustomer.customerNum}) ${getProcessTime(currentCustomer)}")
+                    val processTime = getProcessTime(currentCustomer)
+                    println("     [ORDER COMPLETE] $name <- ${currentCustomer.name} (${currentCustomer.customerNum}) ${processTime}")
                     setBaristaIdle() // scope issues, so call outside function (?? <- works)
                     println("customers in queue: [${CustomerQueue.customers.size}]")
+                    CafeSummary.customerStats[currentCustomer.name] = getProcessRawMillisec(currentCustomer)
                 }
             }
         }
@@ -35,11 +40,16 @@ class Barista(val name: String, val hrlyRate: Double = 15.00)  {
 
     private fun setBaristaIdle() {
         BaristaStatus.setBaristaStatus(this, BaristaConstants.IDLE)
+        idleTimeStart = System.currentTimeMillis()
         currentCustomer = null
     }
 
     private fun getProcessTime(customer: Customer):String{
         return CafeTimer.getAcceleratedTime(customer.orderTimeEnd - customer.orderTimeInit)
+    }
+
+    fun getProcessRawMillisec(customer: Customer):Long{
+        return customer.orderTimeEnd - customer.orderTimeInit
     }
 
 } // end barista class

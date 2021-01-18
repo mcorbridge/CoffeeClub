@@ -18,20 +18,13 @@ import kotlin.properties.Delegates
 import kotlin.system.exitProcess
 
 /**
- * 54,000,000 msec per 15 hr shift (15 hr x 60 min x 60 sec x 1000 msec)
- * 3,600,000 msec per hr
- * --------------------------------
- * 3,600 msec = 1 min
- * 216,000 msec = 1 hr
- * 3,240,000 msec = 15hr
  *
- * Starbucks they are bringing a daily average of around 476 customers per store which leads to over 600+ cups of coffee per day.
+ * Starbucks: they bring a daily average of around 476 customers per store which leads to over 600+ cups of coffee per day.
  */
 @RequiresApi(Build.VERSION_CODES.O)
 class CafeMike {
 
     var customers = CustomerQueue.customers
-    val dec = DecimalFormat("$#,###.00")
 
     init {
         CafeStatus.currentCafeStatus = CafeStatusConstants.OPEN

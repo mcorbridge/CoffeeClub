@@ -28,14 +28,28 @@ object BaristaStatus {
     fun setBaristaStatus(barista: Barista, action:BaristaConstants){
         if(action == BaristaConstants.IDLE){
             println("${barista.name} IS NOW ${BaristaConstants.IDLE}")
+            barista.idleTimeStart = System.currentTimeMillis()
             if(!baristasIdle.contains(barista)){
                 baristasIdle.add(barista)
                 showIdleBaristas()
             }
         }else if(action == BaristaConstants.ACTIVE){
             println("${barista.name} IS NOW ${BaristaConstants.ACTIVE}")
+            barista.idleTimeEnd = System.currentTimeMillis()
             baristasIdle.remove(barista)
+            doIdleTime(barista)
             showIdleBaristas()
+        }
+    }
+
+    private fun doIdleTime(barista: Barista){
+        if(barista.idleTimeStart != 0L){
+            barista.totalIdleTime += barista.idleTimeEnd - barista.idleTimeStart
+            /*println("${barista.name} IDLE TIME: " +
+                    "[start]${barista.idleTimeStart} " +
+                    "[end]${barista.idleTimeEnd} " +
+                    "[diff]${barista.totalIdleTime} " +
+                    CafeTimer.getAcceleratedTime(barista.totalIdleTime))*/
         }
     }
 

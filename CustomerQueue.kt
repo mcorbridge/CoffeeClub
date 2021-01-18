@@ -75,6 +75,7 @@ object CustomerQueue {
             }
             if (isClosingConditions()) {
                 println("************************************ MIKE'S CAFÉ IS NOW ${CafeStatus.currentCafeStatus} ************************************")
+                CafeTimer.endTime = System.currentTimeMillis()
                 CafeSummary.doSummary()
                 exitProcess(-1)
             } else {
